@@ -2,13 +2,13 @@
 from datetime import timedelta
 import logging
 
-import async_timeout
-from mullvad_api import MullvadAPI
+from mullvad_async import Mullvad
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import update_coordinator
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .const import DOMAIN
 
@@ -18,17 +18,16 @@ PLATFORMS = [Platform.BINARY_SENSOR]
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Mullvad VPN integration."""
 
-    async def async_get_mullvad_api_data():
-        async with async_timeout.timeout(10):
-            api = await hass.async_add_executor_job(MullvadAPI)
-            return api.data
+    mullvad_client = Mullvad(async_get_clientsession(hass))
 
-    coordinator = update_coordinator.DataUpdateCoordinator(
-        hass,
-        logging.getLogger(__name__),
-        name=DOMAIN,
-        update_method=async_get_mullvad_api_data,
-        update_interval=timedelta(minutes=1),
+    coordinator: update_coordinator.DataUpdateCoordinator = (
+        update_coordinator.DataUpdateCoordinator(
+            hass,
+            logging.getLogger(__name__),
+            name=DOMAIN,
+            update_method=mullvad_client.is_connected,
+            update_interval=timedelta(minutes=1),
+        )
     )
     await coordinator.async_config_entry_first_refresh()
 

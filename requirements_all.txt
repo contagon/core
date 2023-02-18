@@ -1153,7 +1153,7 @@ motionblinds==0.6.16
 motioneye-client==0.3.14
 
 # homeassistant.components.mullvad
-mullvad-api==1.0.0
+mullvad-async==0.1.0
 
 # homeassistant.components.tts
 mutagen==1.46.0

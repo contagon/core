@@ -1,7 +1,8 @@
 """Config flow for Mullvad VPN integration."""
-from mullvad_api import MullvadAPI, MullvadAPIError
+from mullvad_async import Mullvad, MullvadAPIError
 
 from homeassistant import config_entries
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .const import DOMAIN
 
@@ -18,7 +19,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         errors = {}
         if user_input is not None:
             try:
-                await self.hass.async_add_executor_job(MullvadAPI)
+                mullvad_client = Mullvad(async_get_clientsession(self.hass))
+                await self.hass.async_add_executor_job(mullvad_client.is_connected)
             except MullvadAPIError:
                 errors["base"] = "cannot_connect"
             except Exception:  # pylint: disable=broad-except
